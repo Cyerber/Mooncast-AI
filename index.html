@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Mooncast AI — V2 Paper Scanner</title>
+<style>
+:root{--bg:#080b12;--panel:#111827;--panel2:#0d1422;--line:#243044;--text:#eef4ff;--muted:#91a0b8;--green:#35e39a;--red:#ff6b7a;--yellow:#ffd166;--blue:#72a7ff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#16233b 0,#080b12 45%);color:var(--text);font:14px Inter,system-ui,Arial,sans-serif}
+button,select,input{font:inherit}button{cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#182337;color:var(--text)}button:hover{filter:brightness(1.15)}button.primary{background:#245cc7;border-color:#3977ed}button.green{background:#124d3b;border-color:#237e5b}button.red{background:#572331;border-color:#9d3d53}
+.wrap{max-width:1500px;margin:auto;padding:18px}.top{display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap}.brand{font-size:23px;font-weight:850;letter-spacing:-.7px}.brand span{color:var(--blue)}.sub{color:var(--muted);margin-top:4px}.status{display:flex;gap:8px;align-items:center;color:var(--muted)}.dot{width:9px;height:9px;border-radius:50%;background:var(--yellow)}.dot.live{background:var(--green);box-shadow:0 0 14px #35e39a}
+.grid{display:grid;grid-template-columns:270px minmax(0,1fr) 310px;gap:14px;margin-top:16px}.panel{background:linear-gradient(180deg,#121c2c,#0d1421);border:1px solid var(--line);border-radius:16px;overflow:hidden}.head{padding:14px 15px;border-bottom:1px solid var(--line);font-weight:800;display:flex;justify-content:space-between;gap:10px}.body{padding:14px}.muted{color:var(--muted)}.tiny{font-size:11px}.market{padding:12px;border-bottom:1px solid #1d293b;display:flex;justify-content:space-between;gap:10px;align-items:center}.market.active{background:#182b49}.market button{padding:0;background:none;border:0;text-align:left}.coin{font-weight:800}.price{font-variant-numeric:tabular-nums}.up{color:var(--green)}.down{color:var(--red)}.neutral{color:var(--yellow)}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.metric{background:#0a111d;border:1px solid var(--line);border-radius:12px;padding:12px}.metric b{display:block;font-size:20px;margin-top:6px}.hero{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}.pair{font-size:25px;font-weight:900}.signal{display:inline-flex;padding:7px 10px;border-radius:999px;font-weight:900;font-size:12px;background:#263247}.signal.buy{background:#123f31;color:var(--green)}.signal.sell{background:#4d202d;color:var(--red)}.signal.wait{color:var(--yellow)}
+.chart{height:250px;width:100%;background:#09101b;border:1px solid var(--line);border-radius:12px;margin-top:14px;position:relative;overflow:hidden}.chart svg{width:100%;height:100%}.chartlabel{position:absolute;top:10px;left:12px;color:var(--muted);font-size:11px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.controls input,.controls select{background:#0a111d;border:1px solid var(--line);color:var(--text);padding:10px;border-radius:10px;min-width:0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.box{background:#0a111d;border:1px solid var(--line);border-radius:12px;padding:12px}.box h4{margin:0 0 10px}.row{display:flex;justify-content:space-between;gap:10px;margin:8px 0}.bar{height:7px;background:#263247;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--blue);width:50%}
+table{width:100%;border-collapse:collapse;font-size:12px}td,th{padding:9px 4px;border-bottom:1px solid #1e2a3b;text-align:left}th{color:var(--muted)}.empty{color:var(--muted);padding:20px 0;text-align:center}.notice{font-size:12px;line-height:1.5;color:#aebbd0;background:#0a111d;border:1px solid var(--line);padding:12px;border-radius:12px;margin-top:12px}
+@media(max-width:1100px){.grid{grid-template-columns:220px minmax(0,1fr)}.right{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:14px}.right .panel{height:100%}}
+@media(max-width:720px){.wrap{padding:10px}.grid{display:block}.left,.right{margin-top:14px}.metrics{grid-template-columns:repeat(2,1fr)}.metric b{font-size:18px}.two{grid-template-columns:1fr}.right{display:block}.right .panel{margin-top:14px}.pair{font-size:21px}.chart{height:210px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div><div class="brand">MOONCAST <span>AI</span> <small class="muted">V2</small></div><div class="sub">Multi-market scanner • Paper execution • Risk-first testing</div></div>
+    <div class="status"><span id="dot" class="dot"></span><span id="connection">Connecting to public market feed…</span></div>
+  </header>
+
+  <div class="grid">
+    <aside class="left">
+      <section class="panel">
+        <div class="head">Markets <span class="tiny muted" id="marketCount">0</span></div>
+        <div id="markets"></div>
+      </section>
+      <section class="panel" style="margin-top:14px">
+        <div class="head">Scanner settings</div>
+        <div class="body">
+          <label class="muted tiny">Minimum confidence</label>
+          <input id="minConfidence" type="range" min="50" max="90" value="65" style="width:100%">
+          <div class="row"><span>Threshold</span><b id="confidenceText">65%</b></div>
+          <label class="muted tiny">Risk per paper trade</label>
+          <input id="risk" type="number" min="0.1" step="0.1" value="1" style="width:100%;margin-top:7px;background:#0a111d;color:white;border:1px solid var(--line);border-radius:8px;padding:9px">
+        </div>
+      </section>
+    </aside>
+
+    <main>
+      <section class="panel">
+        <div class="body">
+          <div class="hero">
+            <div><div class="pair" id="selectedPair">BTC/USDT</div><div class="muted" id="selectedPrice">Waiting for price…</div></div>
+            <div style="text-align:right"><div id="signal" class="signal wait">WAIT</div><div class="muted tiny" id="signalReason" style="margin-top:7px">Collecting price history</div></div>
+          </div>
+          <div class="metrics" style="margin-top:14px">
+            <div class="metric"><span class="muted tiny">Last price</span><b id="mPrice">—</b></div>
+            <div class="metric"><span class="muted tiny">24h change</span><b id="mChange">—</b></div>
+            <div class="metric"><span class="muted tiny">Confidence</span><b id="mConfidence">—</b></div>
+            <div class="metric"><span class="muted tiny">Trend</span><b id="mTrend">—</b></div>
+          </div>
+          <div class="chart"><span class="chartlabel">Live price path • not a guaranteed prediction</span><svg id="chartSvg" viewBox="0 0 800 250" preserveAspectRatio="none"></svg></div>
+          <div class="controls">
+            <button class="green" id="longBtn">Paper LONG</button>
+            <button class="red" id="shortBtn">Paper SHORT</button>
+            <button id="closeBtn">Close selected</button>
+            <button id="resetBtn">Reset account</button>
+          </div>
+          <div class="two">
+            <div class="box"><h4>Strategy readout</h4><div class="row"><span class="muted">Momentum</span><b id="momentum">—</b></div><div class="row"><span class="muted">Volatility</span><b id="volatility">—</b></div><div class="row"><span class="muted">Support / resistance</span><b id="levels">—</b></div><div class="row"><span class="muted">Risk status</span><b id="riskStatus">Ready</b></div></div>
+            <div class="box"><h4>Paper trade plan</h4><div class="row"><span class="muted">Entry</span><b id="planEntry">—</b></div><div class="row"><span class="muted">Stop</span><b id="planStop">—</b></div><div class="row"><span class="muted">Target</span><b id="planTarget">—</b></div><div class="row"><span class="muted">Risk/reward</span><b>1 : 2</b></div></div>
+          </div>
+          <div class="notice">This V2 uses public market prices and a simple transparent scoring model. It does not guarantee profitable signals, does not place live orders, and does not connect to a wallet. Validate with a meaningful sample before risking money.</div>
+        </div>
+      </section>
+    </main>
+
+    <aside class="right">
+      <section class="panel">
+        <div class="head">Paper account</div>
+        <div class="body">
+          <div class="row"><span class="muted">Balance</span><b id="balance">$100.00</b></div>
+          <div class="row"><span class="muted">Equity</span><b id="equity">$100.00</b></div>
+          <div class="row"><span class="muted">Open trades</span><b id="openTrades">0</b></div>
+          <div class="row"><span class="muted">Win rate</span><b id="winRate">—</b></div>
+          <div class="row"><span class="muted">Net P/L</span><b id="pnl">$0.00</b></div>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="head">Trade history</div>
+        <div class="body" style="overflow:auto">
+          <table><thead><tr><th>Pair</th><th>Side</th><th>P/L</th></tr></thead><tbody id="history"><tr><td colspan="3" class="empty">No closed trades</td></tr></tbody></table>
+        </div>
+      </section>
+    </aside>
+  </div>
+</div>
+<script>
+const symbols=['BTCUSDT','ETHUSDT','SOLUSDT','BNBUSDT','XRPUSDT','DOGEUSDT','ADAUSDT','AVAXUSDT','LINKUSDT','LTCUSDT'];
+const state={selected:'BTCUSDT',markets:{},history:[],open:[],balance:100,prices:{},minConfidence:65,risk:1};
+const $=id=>document.getElementById(id);
+const fmt=(n,d=2)=>Number.isFinite(n)?n.toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
+const label=s=>s.replace('USDT','/USDT');
+function ensure(sym){if(!state.markets[sym])state.markets[sym]={prices:[],price:0,change:0};return state.markets[sym]}
+function analysis(sym){
+ const m=ensure(sym),p=m.prices;if(p.length<12)return {signal:'WAIT',confidence:50,trend:'Collecting',momentum:'Collecting',volatility:'—',reason:'Collecting price history'};
+ const recent=p.slice(-12),old=p.slice(-24,-12);
+ const avg=a=>a.reduce((x,y)=>x+y,0)/a.length;
+ const r=avg(recent),o=old.length?avg(old):r,delta=(r-o)/o*100;
+ const high=Math.max(...recent),low=Math.min(...recent),vol=(high-low)/r*100;
+ const mom=(recent.at(-1)-recent[0])/recent[0]*100;
+ let score=50+(delta>0?12:-12)+(mom>0?10:-10)+(vol<1?6:-4);
+ score=Math.max(50,Math.min(92,Math.round(score)));
+ let signal='WAIT';if(score>=state.minConfidence&&delta>0&&mom>0)signal='BUY';if((100-score)>=state.minConfidence&&delta<0&&mom<0)signal='SELL';
+ return {signal,confidence:signal==='SELL'?100-score:score,trend:delta>0?'Bullish':delta<0?'Bearish':'Flat',momentum:(mom>=0?'+':'')+mom.toFixed(2)+'%',volatility:vol.toFixed(2)+'%',reason:signal==='WAIT'?'Conditions not aligned':'Trend and momentum aligned'};
+}
+function renderMarkets(){
+ $('marketCount').textContent=symbols.length;
+ $('markets').innerHTML=symbols.map(s=>{let m=ensure(s),c=m.change||0;return `<div class="market ${state.selected===s?'active':''}"><button onclick="selectMarket('${s}')"><div class="coin">${label(s)}</div><div class="tiny muted">${m.price?fmt(m.price):'Waiting…'}</div></button><div class="${c>=0?'up':'down'}">${m.price?(c>=0?'+':'')+c.toFixed(2)+'%':'—'}</div></div>`}).join('');
+}
+function selectMarket(s){state.selected=s;renderAll()}
+function chart(){
+ const p=ensure(state.selected).prices.slice(-80);if(!p.length){$('chartSvg').innerHTML='';return}
+ const min=Math.min(...p),max=Math.max(...p),range=max-min||1;
+ const pts=p.map((v,i)=>`${(i/(p.length-1||1))*800},${235-((v-min)/range)*205}`).join(' ');
+ $('chartSvg').innerHTML=`<line x1="0" y1="235" x2="800" y2="235" stroke="#263247"/><polyline points="${pts}" fill="none" stroke="#72a7ff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
+}
+function plan(){
+ const m=ensure(state.selected),p=m.price;if(!p)return;
+ const a=analysis(state.selected),stop=p*.99,target=p*1.02;
+ $('planEntry').textContent=fmt(p);$('planStop').textContent=fmt(stop);$('planTarget').textContent=fmt(target);
+ $('riskStatus').textContent=state.open.length?'Position open':'Ready';
+}
+function renderMain(){
+ const s=state.selected,m=ensure(s),a=analysis(s),p=m.price;
+ $('selectedPair').textContent=label(s);$('selectedPrice').textContent=p?'$'+fmt(p):'Waiting for price…';
+ $('signal').textContent=a.signal;$('signal').className='signal '+(a.signal==='BUY'?'buy':a.signal==='SELL'?'sell':'wait');
+ $('signalReason').textContent=a.reason;$('mPrice').textContent=p?'$'+fmt(p):'—';$('mChange').textContent=(m.change>=0?'+':'')+fmt(m.change)+'%';$('mChange').className=m.change>=0?'up':'down';
+ $('mConfidence').textContent=a.confidence+'%';$('mTrend').textContent=a.trend;$('momentum').textContent=a.momentum;$('volatility').textContent=a.volatility;
+ const pp=m.prices.slice(-24);$('levels').textContent=pp.length?fmt(Math.min(...pp))+' / '+fmt(Math.max(...pp)):'—';plan();chart();
+}
+function renderAccount(){
+ const pnl=state.balance-100;let wins=state.history.filter(t=>t.pnl>0).length;
+ $('balance').textContent='$'+fmt(state.balance);$('equity').textContent='$'+fmt(state.balance);$('openTrades').textContent=state.open.length;
+ $('winRate').textContent=state.history.length?Math.round(wins/state.history.length*100)+'%':'—';$('pnl').textContent=(pnl>=0?'+$':'-$')+fmt(Math.abs(pnl));$('pnl').className=pnl>=0?'up':'down';
+ $('history').innerHTML=state.history.length?state.history.slice(-15).reverse().map(t=>`<tr><td>${label(t.sym)}</td><td>${t.side}</td><td class="${t.pnl>=0?'up':'down'}">${t.pnl>=0?'+':'-'}$${fmt(Math.abs(t.pnl))}</td></tr>`).join(''):'<tr><td colspan="3" class="empty">No closed trades</td></tr>';
+}
+function renderAll(){renderMarkets();renderMain();renderAccount()}
+function openTrade(side){
+ const m=ensure(state.selected);if(!m.price||state.open.length>=3)return alert('Wait for a live price. Maximum 3 open paper trades.');
+ const risk=Number(state.risk);if(!Number.isFinite(risk)||risk<=0)return alert('Enter a valid risk amount.');
+ state.open.push({sym:state.selected,side,entry:m.price,risk,opened:Date.now()});
+ renderAccount();renderMain();
+}
+function closeSelected(){
+ const m=ensure(state.selected);const idx=state.open.findIndex(t=>t.sym===state.selected);if(idx<0)return alert('No open paper trade for this market.');
+ const t=state.open.splice(idx,1)[0],move=(m.price-t.entry)/t.entry,dir=t.side==='LONG'?1:-1;
+ const pnl=Math.max(-t.risk,Math.min(t.risk*2,dir*move*200*t.risk));state.balance+=pnl;state.history.push({...t,pnl});
+ renderAll();
+}
+function reset(){if(!confirm('Reset paper account and history?'))return;state.balance=100;state.history=[];state.open=[];renderAll()}
+$('longBtn').onclick=()=>openTrade('LONG');$('shortBtn').onclick=()=>openTrade('SHORT');$('closeBtn').onclick=closeSelected;$('resetBtn').onclick=reset;
+$('minConfidence').oninput=e=>{state.minConfidence=+e.target.value;$('confidenceText').textContent=e.target.value+'%';renderMain()};
+$('risk').onchange=e=>state.risk=+e.target.value;
+function connect(){
+ const streams=symbols.map(s=>s.toLowerCase()+'@ticker').join('/');
+ const ws=new WebSocket('wss://stream.binance.com:9443/stream?streams='+streams);
+ ws.onopen=()=>{$('connection').textContent='Public market feed connected';$('dot').classList.add('live')};
+ ws.onclose=()=>{$('connection').textContent='Feed disconnected — retrying';$('dot').classList.remove('live');setTimeout(connect,4000)};
+ ws.onerror=()=>ws.close();
+ ws.onmessage=e=>{const d=JSON.parse(e.data).data;if(!d||!d.s)return;const m=ensure(d.s);m.price=+d.c;m.change=+d.P;m.prices.push(m.price);if(m.prices.length>160)m.prices.shift();renderMarkets();if(d.s===state.selected)renderMain()};
+}
+renderAll();connect();
+</script>
+</body>
+</html>
