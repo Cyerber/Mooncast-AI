@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mooncast AI — V5 Adaptive Research Engine</title>
+<style>
+:root{--bg:#070b12;--panel:#101827;--panel2:#0b1220;--line:#243149;--text:#eef4ff;--muted:#8e9db6;--green:#32e39a;--red:#ff6878;--yellow:#ffd166;--blue:#6fa4ff;--purple:#b58cff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#182743 0,#070b12 48%);color:var(--text);font:14px Inter,system-ui,Arial,sans-serif}button,input,select{font:inherit}button{cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:#18243a;color:var(--text)}button:hover{filter:brightness(1.12)}button.primary{background:#245cc7;border-color:#3977ed}.green{color:var(--green)}.red{color:var(--red)}.yellow{color:var(--yellow)}.muted{color:var(--muted)}.tiny{font-size:11px}
+.wrap{max-width:1550px;margin:auto;padding:16px}.top{display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap}.brand{font-size:24px;font-weight:900;letter-spacing:-.8px}.brand span{color:var(--blue)}.sub{color:var(--muted);margin-top:4px}.status{display:flex;gap:8px;align-items:center;color:var(--muted)}.dot{width:9px;height:9px;border-radius:50%;background:var(--yellow)}.dot.live{background:var(--green);box-shadow:0 0 14px #32e39a}
+.grid{display:grid;grid-template-columns:225px minmax(0,1fr) 285px;gap:12px;margin-top:12px}.panel{background:linear-gradient(180deg,#121c2c,#0d1421);border:1px solid var(--line);border-radius:15px;overflow:hidden}.head{padding:13px 14px;border-bottom:1px solid var(--line);font-weight:850;display:flex;justify-content:space-between}.body{padding:13px}.market{padding:11px;border-bottom:1px solid #1c283b;display:flex;justify-content:space-between;align-items:center;gap:8px}.market.active{background:#172a48}.market button{padding:0;background:none;border:0;text-align:left}.coin{font-weight:800}.price{font-variant-numeric:tabular-nums}.controls{display:flex;gap:8px;flex-wrap:wrap}.controls input,.controls select{background:#0a111d;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:9px}
+.hero{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}.pair{font-size:26px;font-weight:900}.signal{display:inline-flex;padding:7px 12px;border-radius:99px;font-weight:900;font-size:12px;background:#263247}.signal.buy{background:#123f31;color:var(--green)}.signal.sell{background:#4d202d;color:var(--red)}.signal.wait{color:var(--yellow)}
+.metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin-top:13px}.metric,.box{background:#0a111d;border:1px solid var(--line);border-radius:11px;padding:11px}.metric b{display:block;font-size:18px;margin-top:5px}.chart{height:285px;background:#080f1a;border:1px solid var(--line);border-radius:12px;margin-top:13px;position:relative;overflow:hidden}.chart svg{width:100%;height:100%}.chartlabel{position:absolute;top:9px;left:11px;color:var(--muted);font-size:11px;z-index:2}.two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.row{display:flex;justify-content:space-between;gap:10px;margin:8px 0}.notice{font-size:11px;line-height:1.45;color:#aebbd0;background:#0a111d;border:1px solid var(--line);padding:10px;border-radius:10px;margin-top:10px}.score{height:7px;background:#263247;border-radius:99px;overflow:hidden}.score i{display:block;height:100%;background:var(--blue)}
+table{width:100%;border-collapse:collapse;font-size:12px}td,th{padding:8px 4px;border-bottom:1px solid #1e2a3b;text-align:left}th{color:var(--muted)}.empty{text-align:center;color:var(--muted);padding:18px}.tag{display:inline-block;padding:3px 6px;border-radius:7px;background:#19253a;font-size:10px}.signalcard{margin-top:10px;padding:11px;border:1px solid var(--line);border-radius:11px;background:#0a111d}.signalcard strong{font-size:13px}.flex{display:flex;justify-content:space-between;gap:10px;align-items:center}.divider{height:1px;background:var(--line);margin:10px 0}
+@media(max-width:1150px){.grid{grid-template-columns:220px minmax(0,1fr)}.right{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:14px}.right .panel{height:100%}.metrics{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:720px){
+.wrap{padding:10px}.grid{display:flex;flex-direction:column;margin-top:10px}
+main{order:1}.left{order:2}.right{order:3}
+.left,.right{margin-top:10px}.right{display:block}.right .panel{margin-top:10px}
+.metrics{grid-template-columns:repeat(2,1fr);gap:7px}.metric{padding:9px}.metric b{font-size:16px}
+.two{grid-template-columns:1fr}.chart{height:225px}.pair{font-size:22px}.brand{font-size:22px}
+.sub{font-size:12px;line-height:1.35}.controls button{flex:1;min-height:42px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top"><div><div class="brand">MOONCAST <span>AI</span> <small class="muted">V5</small></div><div class="sub">Multi-timeframe scanner • adaptive regime • confluence • risk planning • paper testing</div></div><div class="status"><span id="dot" class="dot"></span><span id="connection">Connecting to Binance public data…</span></div></header>
+<div class="grid">
+<aside class="left">
+<section class="panel"><div class="head">Markets <span id="marketCount" class="tiny muted">0</span></div><div id="markets"></div></section>
+<section class="panel" style="margin-top:13px"><div class="head">Scanner settings</div><div class="body">
+<label class="muted tiny">Minimum confidence</label><input id="minConfidence" type="range" min="55" max="90" value="75" style="width:100%"><div class="row"><span>Threshold</span><b id="confidenceText">75%</b></div>
+<label class="muted tiny">Risk per paper trade ($)</label><input id="risk" type="number" min="1" step="1" value="1" style="width:100%;margin-top:6px;background:#0a111d;color:white;border:1px solid var(--line);border-radius:8px;padding:9px">
+<div class="divider"></div><label class="muted tiny">Signal mode</label><select id="mode" style="width:100%;margin-top:6px"><option value="balanced">Balanced</option><option value="trend">Trend only</option><option value="breakout">Breakout only</option></select>
+</div></section>
+
+<section class="panel" style="margin-top:13px"><div class="head">Adaptive Intelligence</div><div class="body"><div class="row"><span class="muted">Market regime</span><b id="mcRegime">—</b></div><div class="row"><span class="muted">HTF alignment</span><b id="mcHTF">—</b></div><div class="row"><span class="muted">Signal sample</span><b id="mcSample">0</b></div><div class="row"><span class="muted">Setup performance</span><b id="mcSetup">—</b></div><div class="notice">Mooncast records its signals so you can measure which setups and market conditions actually work. Historical statistics are descriptive, not guarantees.</div></div></section>
+<section class="panel" style="margin-top:13px"><div class="head">Data</div><div class="body"><button class="primary" id="refreshBtn" style="width:100%">Refresh candles</button><div class="tiny muted" style="margin-top:8px">Data: Binance public market endpoints. No API key is required for this scanner.</div></div></section>
+</aside>
+<main><section class="panel"><div class="body">
+<div class="hero"><div><div class="pair" id="selectedPair">BTC/USDT</div><div class="muted" id="selectedPrice">Loading candles…</div></div><div style="text-align:right"><div id="signal" class="signal wait">WAIT</div><div class="muted tiny" id="signalReason" style="margin-top:7px">Waiting for indicator confirmation</div></div></div>
+<div class="signalcard" style="margin-top:11px;border-color:#2d4164">
+<div class="flex"><strong>Trade Plan</strong><span class="tag" id="setupTypeTop">SCANNING</span></div>
+<div class="row"><span class="muted">Entry zone</span><b id="topEntry">—</b></div>
+<div class="row"><span class="muted">Invalidation</span><b id="topStop">—</b></div>
+<div class="row"><span class="muted">Targets</span><b id="topTargets">—</b></div>
+</div>
+<div class="metrics"><div class="metric"><span class="muted tiny">Last</span><b id="mPrice">—</b></div><div class="metric"><span class="muted tiny">24h</span><b id="mChange">—</b></div><div class="metric"><span class="muted tiny">Confidence</span><b id="mConfidence">—</b></div><div class="metric"><span class="muted tiny">Trend</span><b id="mTrend">—</b></div><div class="metric"><span class="muted tiny">RSI</span><b id="mRSI">—</b></div><div class="metric"><span class="muted tiny">R:R</span><b id="mRR">—</b></div></div>
+<div class="chart"><span class="chartlabel">Price + EMA20/EMA50 • structure levels</span><svg id="chartSvg" viewBox="0 0 1000 285" preserveAspectRatio="none"></svg></div>
+<div class="controls" style="margin-top:12px"><button class="green" id="longBtn">Paper LONG</button><button class="red" id="shortBtn">Paper SHORT</button><button id="closeBtn">Close selected</button><button id="resetBtn">Reset paper</button></div>
+<div class="two">
+<div class="box"><h4 style="margin:0 0 9px">Entry / Exit Plan</h4><div class="row"><span class="muted">Setup</span><b id="setupType">—</b></div><div class="row"><span class="muted">Entry</span><b id="planEntry">—</b></div><div class="row"><span class="muted">Stop</span><b id="planStop">—</b></div><div class="row"><span class="muted">TP1</span><b id="planTP1">—</b></div><div class="row"><span class="muted">TP2</span><b id="planTP2">—</b></div><div class="row"><span class="muted">R:R</span><b id="planRR">—</b></div></div>
+<div class="box"><h4 style="margin:0 0 9px">Technical Engine</h4><div class="row"><span class="muted">EMA20 / EMA50</span><b id="ema">—</b></div><div class="row"><span class="muted">RSI(14)</span><b id="rsi">—</b></div><div class="row"><span class="muted">MACD</span><b id="macd">—</b></div><div class="row"><span class="muted">ATR</span><b id="atr">—</b></div><div class="row"><span class="muted">VWAP</span><b id="vwap">—</b></div><div class="row"><span class="muted">Volume</span><b id="volume">—</b></div></div></div>
+<div class="two"><div class="box"><h4 style="margin:0 0 9px">Confluence Engine</h4><div class="row"><span class="muted">Trend</span><b id="scoreTrend">—</b></div><div class="row"><span class="muted">Momentum</span><b id="scoreMomentum">—</b></div><div class="row"><span class="muted">Structure</span><b id="scoreStructure">—</b></div><div class="row"><span class="muted">Volume</span><b id="scoreVolume">—</b></div><div class="row"><span class="muted">HTF</span><b id="scoreHTF">—</b></div><div class="row"><span class="muted">Final</span><b id="finalScore">—</b></div></div>
+<div class="box"><h4 style="margin:0 0 9px">Signal Logic</h4><div id="logic" class="muted" style="line-height:1.55">No signal yet.</div><div class="notice">The scanner is a rules-based confluence engine. The “AI” label describes the product; these signals are not guaranteed predictions and should be validated with backtesting and forward testing.</div></div></div>
+<div class="notice">Risk model: stop placement uses market structure and ATR. Paper P/L uses position sizing from the chosen dollar risk instead of the old arbitrary price-move multiplier. Live orders are not enabled in this V4.</div>
+</div></section></main>
+<aside class="right">
+<section class="panel"><div class="head">Paper account</div><div class="body"><div class="row"><span class="muted">Balance</span><b id="balance">$100.00</b></div><div class="row"><span class="muted">Equity</span><b id="equity">$100.00</b></div><div class="row"><span class="muted">Open trades</span><b id="openTrades">0</b></div><div class="row"><span class="muted">Win rate</span><b id="winRate">—</b></div><div class="row"><span class="muted">Net P/L</span><b id="pnl">$0.00</b></div><div class="row"><span class="muted">Profit factor</span><b id="pf">—</b></div><div class="row"><span class="muted">Max drawdown</span><b id="dd">$0.00</b></div></div></section>
+<section class="panel"><div class="head">Backtest snapshot <span class="tiny muted" id="btStatus">Ready</span></div><div class="body"><button class="primary" id="backtestBtn" style="width:100%">Run simple backtest</button><div id="btResults" style="margin-top:10px"><div class="empty">Select a market and run the test.</div></div></div></section>
+
+<section class="panel" style="margin-top:13px"><div class="head">Research Lab <span class="tiny muted" id="mcBTStatus">Ready</span></div><div class="body"><button class="primary" id="mcBT" style="width:100%">Run Adaptive Backtest</button><div id="mcBTResults" class="signalcard"><div class="empty">Run the test to measure historical signal behavior.</div></div></div></section>
+<section class="panel"><div class="head">Trade history</div><div class="body" style="overflow:auto"><table><thead><tr><th>Pair</th><th>Side</th><th>R</th><th>P/L</th></tr></thead><tbody id="history"><tr><td colspan="4" class="empty">No closed trades</td></tr></tbody></table></div></section>
+</aside></div></div>
+<script>
+const symbols=['BTCUSDT','ETHUSDT','SOLUSDT','BNBUSDT','XRPUSDT','DOGEUSDT','ADAUSDT','AVAXUSDT','LINKUSDT','LTCUSDT'];
+const TF='5m', HTF='1h';
+const state={selected:'BTCUSDT',markets:{},history:[],open:[],balance:100,equityPeak:100,minConfidence:75,risk:1,mode:'balanced'};
+const $=id=>document.getElementById(id), label=s=>s.replace('USDT','/USDT');
+const fmt=(n,d=2)=>Number.isFinite(n)?Number(n).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
+function ensure(s){if(!state.markets[s])state.markets[s]={candles:[],htf:[],price:0,change:0};return state.markets[s]}
+const BINANCE_BASES=['https://data-api.binance.vision','https://api.binance.com','https://api1.binance.com','https://api2.binance.com','https://api3.binance.com','https://api4.binance.com'];
+async function fetchKlines(sym,interval,limit=250){
+  let lastErr=null;
+  for(const base of BINANCE_BASES){
+    const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),7000);
+    try{
+      const u=`${base}/api/v3/klines?symbol=${encodeURIComponent(sym)}&interval=${encodeURIComponent(interval)}&limit=${limit}`;
+      const r=await fetch(u,{signal:ctrl.signal,cache:'no-store',mode:'cors'});
+      if(!r.ok)throw Error(`HTTP ${r.status}`);
+      const a=await r.json();
+      if(!Array.isArray(a)||a.length<20)throw Error('Invalid/empty candle response');
+      return a.map(x=>({t:+x[0],o:+x[1],h:+x[2],l:+x[3],c:+x[4],v:+x[5]}));
+    }catch(e){lastErr=e}finally{clearTimeout(timer)}
+  }
+  throw Error(`Binance market-data unavailable: ${lastErr?.message||'network error'}`);
+}
+function ema(arr,n){if(!arr.length)return null;let k=2/(n+1),e=arr[0];for(let i=1;i<arr.length;i++)e=arr[i]*k+e*(1-k);return e}
+function rsi(arr,n=14){if(arr.length<=n)return 50;let g=0,l=0;for(let i=1;i<=n;i++){let d=arr[i]-arr[i-1];if(d>=0)g+=d;else l-=d}let ag=g/n,al=l/n;for(let i=n+1;i<arr.length;i++){let d=arr[i]-arr[i-1];ag=((ag*(n-1))+(d>0?d:0))/n;al=((al*(n-1))+(d<0?-d:0))/n}if(al===0)return 100;return 100-100/(1+ag/al)}
+function atr(c,n=14){if(c.length<=n)return 0;let tr=[];for(let i=1;i<c.length;i++)tr.push(Math.max(c[i].h-c[i].l,Math.abs(c[i].h-c[i-1].c),Math.abs(c[i].l-c[i-1].c)));return tr.slice(-n).reduce((a,b)=>a+b,0)/Math.min(n,tr.length)}
+function vwap(c,n=60){let a=c.slice(-n),pv=0,v=0;for(const x of a){pv+=((x.h+x.l+x.c)/3)*x.v;v+=x.v}return v?pv/v:null}
+function macd(cl){let m=ema(cl,12)-ema(cl,26),sig=ema(cl.slice(-50).map((_,i)=>ema(cl.slice(0,i+27),12)-ema(cl.slice(0,i+27),26)).filter(Number.isFinite),9);return {m,s:sig||0,h:m-(sig||0)}}
+function avg(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:0}
+function analyze(sym){const m=ensure(sym),c=m.candles;if(c.length<80)return null;const cl=c.map(x=>x.c),last=cl.at(-1),e20=ema(cl,20),e50=ema(cl,50),e200=ema(cl,200),R=rsi(cl),A=atr(c),V=vwap(c),M=macd(cl),volNow=c.at(-1).v,volAvg=avg(c.slice(-21,-1).map(x=>x.v)),volRatio=volAvg?volNow/volAvg:1;
+ const hi=Math.max(...c.slice(-30,-1).map(x=>x.h)),lo=Math.min(...c.slice(-30,-1).map(x=>x.l));
+ const htf=m.htf.length?(()=>{const q=m.htf.map(x=>x.c),a=ema(q,20),b=ema(q,50);return {trend:a>b?'BULLISH':a<b?'BEARISH':'FLAT',e20:a,e50:b}})():{trend:'UNKNOWN'};
+ const trend=e20>e50&&e50>e200?'BULLISH':e20<e50&&e50<e200?'BEARISH':e20>e50?'UP':'DOWN';
+ const bull=[e20>e50,e20>e200,last>V,R>50,M.h>0,last>lo+(hi-lo)*.55,volRatio>1.05,htf.trend==='BULLISH'];
+ const bear=[e20<e50,e20<e200,last<V,R<50,M.h<0,last<lo+(hi-lo)*.45,volRatio>1.05,htf.trend==='BEARISH'];
+ let bs=bull.filter(Boolean).length,ss=bear.filter(Boolean).length;
+ let score=Math.round(50+Math.max(bs,ss)*5+Math.min(10,Math.abs(R-50)*.25)+(volRatio>1.3?6:volRatio>1.05?3:0));
+ let signal='WAIT';if(state.mode==='trend'){if(bs>=7&&score>=state.minConfidence)signal='BUY';if(ss>=7&&score>=state.minConfidence)signal='SELL'}else if(state.mode==='breakout'){if(last>hi&&bs>=5&&score>=state.minConfidence)signal='BUY';if(last<lo&&ss>=5&&score>=state.minConfidence)signal='SELL'}else{if(bs>=6&&score>=state.minConfidence)signal='BUY';if(ss>=6&&score>=state.minConfidence)signal='SELL'}
+ // Prefer confirmation, not chasing: if RSI is extreme, require stronger volume/structure.
+ if((signal==='BUY'&&R>74)||(signal==='SELL'&&R<26))signal='WAIT';
+ const buffer=Math.max(A*1.35,last*.0025);let entry=last,stop=signal==='SELL'?Math.max(hi,last+buffer):Math.min(lo,last-buffer);if(signal==='BUY'&&stop>=entry)stop=entry-buffer;if(signal==='SELL'&&stop<=entry)stop=entry+buffer;let risk=Math.abs(entry-stop);let tp1=signal==='SELL'?entry-risk*1.5:entry+risk*1.5,tp2=signal==='SELL'?entry-risk*2.5:entry+risk*2.5;
+ const rr=1.5, setup=last>hi?'BREAKOUT LONG':last<lo?'BREAKDOWN SHORT':trend.includes('BULL')?'TREND CONTINUATION':trend.includes('BEAR')?'TREND CONTINUATION':'RANGE';
+ const reasons=[];reasons.push(`${bs}/8 bullish checks, ${ss}/8 bearish checks`);reasons.push(`EMA20 ${e20>e50?'above':'below'} EMA50`);reasons.push(`RSI ${R.toFixed(1)}`);reasons.push(`MACD ${M.h>=0?'positive':'negative'}`);reasons.push(`volume ${volRatio.toFixed(2)}x average`);reasons.push(`1h trend ${htf.trend}`);
+ return {signal,score,entry,stop,tp1,tp2,rr,setup,e20,e50,e200,R,A,V,M,volRatio,hi,lo,trend,htf,reasons,bs,ss};}
+function renderMarkets(){$('marketCount').textContent=symbols.length;$('markets').innerHTML=symbols.map(s=>{let m=ensure(s),c=m.change||0;return `<div class="market ${state.selected===s?'active':''}"><button onclick="selectMarket('${s}')"><div class="coin">${label(s)}</div><div class="tiny muted">${m.price?fmt(m.price):'Loading…'}</div></button><div class="${c>=0?'green':'red'}">${m.price?(c>=0?'+':'')+c.toFixed(2)+'%':'—'}</div></div>`}).join('')}
+function selectMarket(s){state.selected=s;renderAll()}
+function chart(){const m=ensure(state.selected),c=m.candles.slice(-80);if(!c.length){$('chartSvg').innerHTML='';return}const p=c.map(x=>x.c),e20=c.map((_,i)=>ema(m.candles.slice(0,m.candles.length-80+i+1).map(x=>x.c),20));const a=analyze(state.selected);let all=p.concat(e20.filter(Number.isFinite),a?[a.hi,a.lo]:[]),min=Math.min(...all),max=Math.max(...all),range=max-min||1,xy=(v,i)=>`${i/(p.length-1||1)*1000},${260-(v-min)/range*225}`;let poly=p.map(xy).join(' '),ep=e20.map(xy).join(' ');$('chartSvg').innerHTML=`<line x1="0" y1="260" x2="1000" y2="260" stroke="#263247"/><polyline points="${poly}" fill="none" stroke="#6fa4ff" stroke-width="2.6"/><polyline points="${ep}" fill="none" stroke="#b58cff" stroke-width="1.7"/><line x1="0" y1="${260-(a.hi-min)/range*225}" x2="1000" y2="${260-(a.hi-min)/range*225}" stroke="#ff6878" stroke-dasharray="5 5" opacity=".55"/><line x1="0" y1="${260-(a.lo-min)/range*225}" x2="1000" y2="${260-(a.lo-min)/range*225}" stroke="#32e39a" stroke-dasharray="5 5" opacity=".55"/>`}
+function renderMain(){const s=state.selected,m=ensure(s),a=analyze(s);$('selectedPair').textContent=label(s);$('selectedPrice').textContent=m.price?'$'+fmt(m.price):'Loading candles…';if(!a){$('signal').textContent='WAIT';$('signal').className='signal wait';$('signalReason').textContent='Need more candle data';return}$('signal').textContent=a.signal;$('signal').className='signal '+(a.signal==='BUY'?'buy':a.signal==='SELL'?'sell':'wait');$('signalReason').textContent=a.signal==='WAIT'?'Confirmation is incomplete — no trade':'Confluence confirmed; validate entry against live structure';$('mPrice').textContent='$'+fmt(m.price);$('mChange').textContent=(m.change>=0?'+':'')+fmt(m.change)+'%';$('mChange').className=m.change>=0?'green':'red';$('mConfidence').textContent=a.score+'%';$('mTrend').textContent=a.trend;$('mRSI').textContent=fmt(a.R,1);$('mRR').textContent=a.signal==='WAIT'?'—':'1:'+a.rr.toFixed(1);
+ $('setupType').textContent=a.setup;
+$('setupTypeTop').textContent=a.setup;
+$('topEntry').textContent=a.signal==='WAIT'?'Wait for confirmation':fmt(a.entry);
+$('topStop').textContent=a.signal==='WAIT'?'—':fmt(a.stop);
+$('topTargets').textContent=a.signal==='WAIT'?'—':fmt(a.tp1)+' / '+fmt(a.tp2);
+$('planEntry').textContent=fmt(a.entry);$('planStop').textContent=fmt(a.stop);$('planTP1').textContent=fmt(a.tp1);$('planTP2').textContent=fmt(a.tp2);$('planRR').textContent='1:'+a.rr.toFixed(1);$('ema').textContent=fmt(a.e20)+' / '+fmt(a.e50);$('rsi').textContent=fmt(a.R,1);$('macd').textContent=fmt(a.M.h,4);$('atr').textContent=fmt(a.A);$('vwap').textContent=fmt(a.V);$('volume').textContent=a.volRatio.toFixed(2)+'x';$('scoreTrend').textContent=(a.trend==='BULLISH'||a.trend==='BEARISH')?'Strong':'Mixed';$('scoreMomentum').textContent=a.M.h>0?'Bullish':'Bearish';$('scoreStructure').textContent=a.entry>a.hi?'Breakout':a.entry<a.lo?'Breakdown':'Inside range';$('scoreVolume').textContent=a.volRatio>=1.05?'Confirmed':'Weak';$('scoreHTF').textContent=a.htf.trend;$('finalScore').textContent=a.score+'/100';$('logic').innerHTML=a.reasons.map(x=>`<div>• ${x}</div>`).join('');chart();renderAccount()}
+function renderAccount(){let openPnl=0;for(const t of state.open){const m=ensure(t.sym),move=(m.price-t.entry)/t.entry,dir=t.side==='LONG'?1:-1;openPnl+=dir*move*t.qty*t.entry}state.equity=state.balance+openPnl;$('balance').textContent='$'+fmt(state.balance);$('equity').textContent='$'+fmt(state.equity);$('openTrades').textContent=state.open.length;let wins=state.history.filter(t=>t.pnl>0),loss=state.history.filter(t=>t.pnl<0),grossW=wins.reduce((a,t)=>a+t.pnl,0),grossL=-loss.reduce((a,t)=>a+t.pnl,0);$('winRate').textContent=state.history.length?Math.round(wins.length/state.history.length*100)+'%':'—';$('pnl').textContent=(state.balance-100>=0?'+$':'-$')+fmt(Math.abs(state.balance-100));$('pnl').className=state.balance>=100?'green':'red';$('pf').textContent=grossL?fmt(grossW/grossL,2):'—';$('dd').textContent='$'+fmt(Math.max(0,state.equityPeak-state.balance));$('history').innerHTML=state.history.length?state.history.slice(-20).reverse().map(t=>`<tr><td>${label(t.sym)}</td><td>${t.side}</td><td>${t.R>=0?'+':''}${fmt(t.R,2)}R</td><td class="${t.pnl>=0?'green':'red'}">${t.pnl>=0?'+':'-'}$${fmt(Math.abs(t.pnl))}</td></tr>`).join(''):'<tr><td colspan="4" class="empty">No closed trades</td></tr>'}
+function openTrade(side){const m=ensure(state.selected),a=analyze(state.selected);if(!a||!m.price)return alert('Wait for candle data.');if(a.signal!==(side==='LONG'?'BUY':'SELL'))return alert('Paper trade blocked: the current scanner does not confirm this direction.');const risk=Number(state.risk);const dist=Math.abs(m.price-a.stop);if(!dist||risk<=0)return alert('Invalid risk/stop.');const qty=risk/dist;state.open.push({sym:state.selected,side,entry:m.price,stop:a.stop,qty,risk,opened:Date.now()});renderAll()}
+function closeSelected(){const m=ensure(state.selected),idx=state.open.findIndex(t=>t.sym===state.selected);if(idx<0)return alert('No open paper trade for this market.');const t=state.open.splice(idx,1)[0],move=(m.price-t.entry)/t.entry,dir=t.side==='LONG'?1:-1,pnl=dir*move*t.qty*t.entry,R=pnl/t.risk;state.balance+=pnl;state.equityPeak=Math.max(state.equityPeak,state.balance);state.history.push({...t,pnl,R});renderAll()}
+function reset(){if(!confirm('Reset paper account and history?'))return;state.balance=100;state.equityPeak=100;state.history=[];state.open=[];renderAll()}
+async function loadAll(){
+  $('connection').textContent='Connecting to Binance market data…';$('dot').classList.remove('live');
+  let loaded=0,lastError='';
+  for(const s of symbols){
+    try{
+      const [c,h]=await Promise.all([fetchKlines(s,TF,250),fetchKlines(s,HTF,180)]);
+      const m=ensure(s);m.candles=c;m.htf=h;m.price=c.at(-1).c;m.change=((m.price-c.at(-1).o)/c.at(-1).o)*100;
+      loaded++;renderMarkets();if(s===state.selected)renderMain();
+    }catch(e){lastError=e?.message||String(e);console.warn('Mooncast data error',s,e)}
+  }
+  if(loaded){
+    $('connection').textContent=`Binance market data connected • ${loaded}/${symbols.length} markets`;
+    $('dot').classList.add('live');
+  }else{
+    $('connection').textContent='Connection failed — tap Refresh candles';
+    $('dot').classList.remove('live');
+    $('signalReason').textContent=lastError||'No market data returned';
+  }
+}
+async function backtest(){const s=state.selected;$('btStatus').textContent='Running…';try{const c=await fetchKlines(s,TF,500);let trades=[],wins=0,gain=0,loss=0;for(let i=120;i<c.length-1;i++){const sample=c.slice(0,i+1),tmp=state.markets[s];state.markets[s]={candles:sample,htf:tmp.htf,price:sample.at(-1).c,change:0};const a=analyze(s);if(!a||a.signal==='WAIT')continue;const entry=c[i].c,stop=a.stop,risk=Math.abs(entry-stop);let hit=null;for(let j=i+1;j<Math.min(c.length,i+25);j++){if(a.signal==='BUY'){if(c[j].l<=stop){hit=-1;break}if(c[j].h>=a.tp1){hit=1.5;break}}else{if(c[j].h>=stop){hit=-1;break}if(c[j].l<=a.tp1){hit=1.5;break}}}if(hit!==null){trades.push(hit);if(hit>0){wins++;gain+=hit}else loss+=-hit}}state.markets[s]=tmp;const pf=loss?gain/loss:0;const wr=trades.length?wins/trades.length*100:0;$('btResults').innerHTML=`<div class="row"><span class="muted">Trades</span><b>${trades.length}</b></div><div class="row"><span class="muted">Win rate</span><b>${wr.toFixed(1)}%</b></div><div class="row"><span class="muted">Net R</span><b class="${gain-loss>=0?'green':'red'}">${(gain-loss).toFixed(2)}R</b></div><div class="row"><span class="muted">Profit factor</span><b>${pf?pf.toFixed(2):'—'}</b></div><div class="notice">This is a simple historical simulation on the fetched 5m candles. It ignores fees, slippage and intrabar execution details, so it is not proof of future performance.</div>`;state.markets[s]=tmp;renderAll();$('btStatus').textContent='Complete'}catch(e){$('btStatus').textContent='Error';$('btResults').innerHTML='<div class="empty">Backtest failed. Check internet access and Binance availability.</div>'}}
+$('longBtn').onclick=()=>openTrade('LONG');$('shortBtn').onclick=()=>openTrade('SHORT');$('closeBtn').onclick=closeSelected;$('resetBtn').onclick=reset;$('refreshBtn').onclick=loadAll;$('backtestBtn').onclick=backtest;$('minConfidence').oninput=e=>{state.minConfidence=+e.target.value;$('confidenceText').textContent=e.target.value+'%';renderMain()};$('risk').onchange=e=>state.risk=+e.target.value;$('mode').onchange=e=>{state.mode=e.target.value;renderMain()};
+setInterval(()=>{for(const t of state.open){const m=ensure(t.sym);if(m.price){const dir=t.side==='LONG'?1:-1;if((dir===1&&m.price<=t.stop)||(dir===-1&&m.price>=t.stop)){const idx=state.open.indexOf(t);if(idx>=0){state.open.splice(idx,1);const pnl=-t.risk;state.balance+=pnl;state.history.push({...t,pnl,R:-1})}}}}renderAccount();},2000);
+renderAll();loadAll();
+</script>
+<script>
+// Mooncast V5 Adaptive Research Layer
+const mcLog=[];
+function mcRegime(c){if(!c||c.length<60)return 'UNKNOWN';const cl=c.map(x=>x.c),e20=ema(cl,20),e50=ema(cl,50),r=Math.max(...c.slice(-30).map(x=>x.h))-Math.min(...c.slice(-30).map(x=>x.l));const pct=r/(cl.at(-1)||1);if(pct<.01)return 'RANGE';if(e20>e50&&Math.abs(e20-e50)/cl.at(-1)>.003)return 'TRENDING UP';if(e20<e50&&Math.abs(e20-e50)/cl.at(-1)>.003)return 'TRENDING DOWN';return 'HIGH VOLATILITY / MIXED'}
+function mcRecord(){const s=state.selected,m=ensure(s),a=analyze(s);if(!a)return;const key=s+'|'+a.signal+'|'+Math.floor(Date.now()/60000);if(!mcLog.some(x=>x.key===key))mcLog.push({key,sym:s,time:Date.now(),signal:a.signal,score:a.score,setup:a.setup,regime:mcRegime(m.candles)});if(mcLog.length>1000)mcLog.shift();$('mcRegime').textContent=mcRegime(m.candles);$('mcHTF').textContent=a.htf.trend||'—';$('mcSample').textContent=mcLog.filter(x=>x.sym===s).length;const q=mcLog.filter(x=>x.sym===s&&x.setup===a.setup);$('mcSetup').textContent=q.length?(q.length+' observed'):'Collecting'}
+async function mcBacktest(){const s=state.selected;$('mcBTStatus').textContent='Running…';try{const c=await fetchKlines(s,TF,1000),results=[];for(let i=100;i<c.length-25;i++){const sample=c.slice(0,i+1),m=state.markets[s],a=analyze(s,sample,m.htf);if(!a||a.signal==='WAIT')continue;let r=null;for(let j=i+1;j<Math.min(c.length,i+26);j++){if(a.signal==='BUY'){if(c[j].l<=a.stop){r=-1;break}if(c[j].h>=a.tp1){r=1.5;break}}else{if(c[j].h>=a.stop){r=-1;break}if(c[j].l<=a.tp1){r=1.5;break}}}if(r!==null)results.push({r,setup:a.setup,regime:a.regime})}const wins=results.filter(x=>x.r>0),loss=results.filter(x=>x.r<0),gw=wins.reduce((a,x)=>a+x.r,0),gl=-loss.reduce((a,x)=>a+x.r,0),wr=results.length?wins.length/results.length*100:0,pf=gl?gw/gl:0;const by={};results.forEach(x=>{by[x.setup]??={n:0,w:0,r:0};by[x.setup].n++;by[x.setup].w+=x.r>0?1:0;by[x.setup].r+=x.r});$('mcBTResults').innerHTML='<div class="row"><span class="muted">Signals tested</span><b>'+results.length+'</b></div><div class="row"><span class="muted">Win rate</span><b>'+wr.toFixed(1)+'%</b></div><div class="row"><span class="muted">Net result</span><b class="'+(gw-gl>=0?'green':'red')+'">'+(gw-gl).toFixed(2)+'R</b></div><div class="row"><span class="muted">Profit factor</span><b>'+ (pf?pf.toFixed(2):'—')+'</b></div><div class="divider"></div>'+Object.entries(by).map(([k,v])=>'<div class="signalcard"><div class="flex"><strong>'+k+'</strong><span>'+v.n+' trades</span></div><div class="row"><span class="muted">Win rate</span><b>'+((v.w/v.n)*100).toFixed(1)+'%</b></div><div class="row"><span class="muted">Net R</span><b class="'+(v.r>=0?'green':'red')+'">'+v.r.toFixed(2)+'R</b></div></div>').join('')+'<div class="notice">Walk-forward-style test on fetched candles. Fees, slippage, spread and exact intrabar execution are not modeled.</div>';$('mcBTStatus').textContent='Complete'}catch(e){$('mcBTStatus').textContent='Error';$('mcBTResults').innerHTML='<div class="empty">Backtest failed. Check Binance/network access.</div>'}}
+$('mcBT').onclick=mcBacktest;setInterval(mcRecord,3000);setTimeout(mcRecord,2000);
+</script>
+</body></html>
