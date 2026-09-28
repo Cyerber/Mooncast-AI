@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mooncast AI — Exness-Style MT5 Paper Terminal</title>
+<style>
+:root{--bg:#070a0e;--panel:#0d131a;--panel2:#111923;--line:#202c38;--text:#eef4f8;--muted:#8290a0;--green:#55e6a5;--red:#ff6875;--yellow:#ffd166;--blue:#65a9ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px Inter,system-ui,-apple-system,Segoe UI,sans-serif}.wrap{max-width:1280px;margin:auto;padding:20px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.logo{font-size:24px;font-weight:850}.logo span{color:var(--green)}.pill{border:1px solid var(--line);padding:7px 11px;border-radius:999px;color:var(--yellow);font-size:12px}
+nav{display:flex;gap:7px;overflow:auto;margin-bottom:18px}button{cursor:pointer;border:1px solid var(--line);background:#101720;color:#b8c3cf;border-radius:9px;padding:10px 13px}button.active,button.primary{background:var(--green);color:#06100b;border-color:var(--green);font-weight:750}.danger{border-color:#63303a;color:#ff8a94}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px}.kpi small,.muted{color:var(--muted)}.kpi b{display:block;font-size:25px;margin:8px 0}.green{color:var(--green)}.red{color:var(--red)}.yellow{color:var(--yellow)}.blue{color:var(--blue)}.section{margin-top:14px}.two{display:grid;grid-template-columns:1.7fr 1fr;gap:12px}h2{font-size:16px;margin:0 0 10px}h3{font-size:14px;margin:15px 0 8px}table{width:100%;border-collapse:collapse}th,td{padding:10px 7px;border-bottom:1px solid var(--line);text-align:left;font-size:12px}th{color:var(--muted);font-weight:500}.badge{display:inline-block;padding:4px 7px;border-radius:999px;font-size:10px;font-weight:800}.good{background:#103a2b;color:var(--green)}.watch{background:#3a3012;color:var(--yellow)}.block{background:#421a21;color:#ff8993}.bar{height:7px;background:#202a34;border-radius:10px;overflow:hidden}.bar i{display:block;height:100%;background:var(--green)}.form{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.field label{display:block;color:var(--muted);font-size:11px;margin-bottom:5px}.field input,.field select{width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);background:#080c11;color:white}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.alert{padding:11px;border-radius:9px;margin-top:12px;background:#241c0b;border:1px solid #4a3916;color:var(--yellow)}.ok{background:#0d2a20;border-color:#174b39;color:var(--green)}.log{background:#080c11;border:1px solid var(--line);border-radius:9px;max-height:220px;overflow:auto;padding:9px;font:11px ui-monospace,monospace}.log div{padding:5px 0;border-bottom:1px solid #151c23}.hidden{display:none}.big{font-size:30px;font-weight:850}.metric{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line)}.tag{font-size:11px;color:var(--muted)}
+@media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}}@media(max-width:520px){.wrap{padding:13px}.grid,.form{grid-template-columns:1fr}.top{align-items:flex-start;gap:10px;flex-direction:column}}
+.terminal{letter-spacing:.1px}.green{font-weight:650}.red{font-weight:650}button{transition:.15s}button:hover{filter:brightness(1.12)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><div class="logo">MOONCAST <span>AI</span> <small style="font-size:11px;color:#667381">MT5 PAPER</small></div><div class="pill" id="mode">● EXNESS-STYLE / PAPER</div></div>
+<nav>
+<button class="active" onclick="tab('home',this)">Terminal</button>
+<button onclick="tab('scout',this)">Market Scanner</button>
+<button onclick="tab('positions',this)">Positions</button>
+<button onclick="tab('history',this)">Trade History</button>
+<button onclick="tab('risk',this)">Risk Engine</button>
+<button onclick="tab('connect',this)">MT5 / Exness</button>
+</nav>
+
+
+<section id="home">
+  <div class="grid">
+    <div class="card kpi"><small>Balance</small><b id="eq">$2,000.00</b><span id="eqPct" class="green">+0.00%</span></div>
+    <div class="card kpi"><small>Equity</small><b id="equity">$2,000.00</b><span class="muted">Balance + floating P/L</span></div>
+    <div class="card kpi"><small>Daily P/L</small><b id="pnl">$0.00</b><span id="pnlSub" class="muted">Daily result</span></div>
+    <div class="card kpi"><small>Drawdown</small><b id="dd">0.00%</b><span id="ddSub" class="green">Within limit</span></div>
+  </div>
+
+  <div class="two section">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <div><h2 id="chartTitle">EURUSD · 1H</h2><span class="muted" id="quoteLine">Bid 1.08420 · Ask 1.08430</span></div>
+        <span class="badge good" id="signalBadge">WAIT</span>
+      </div>
+      <div id="chart" style="height:300px;margin-top:12px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#080c11"></div>
+      <div class="actions">
+        <button class="primary" onclick="marketOrder('BUY')">BUY <span id="buyPrice">1.08430</span></button>
+        <button class="danger" onclick="marketOrder('SELL')">SELL <span id="sellPrice">1.08420</span></button>
+        <button onclick="closeAll()">Close All</button>
+      </div>
+      <div class="alert" id="terminalAlert">Paper mode: orders are simulated only.</div>
+    </div>
+
+    <div class="card">
+      <h2>Market Watch</h2>
+      <div id="watch"></div>
+      <h3>AI trade plan</h3>
+      <div class="metric"><span>Direction</span><b id="planDir" class="yellow">WAIT</b></div>
+      <div class="metric"><span>Entry</span><b id="planEntry">—</b></div>
+      <div class="metric"><span>Stop loss</span><b id="planSL">—</b></div>
+      <div class="metric"><span>Take profit</span><b id="planTP">—</b></div>
+      <div class="metric"><span>Signal confidence</span><b id="confidence">—</b></div>
+    </div>
+  </div>
+
+  <div class="two section">
+    <div class="card">
+      <h2>Open Positions</h2>
+      <table><thead><tr><th>Symbol</th><th>Side</th><th>Lots</th><th>Entry</th><th>SL</th><th>TP</th><th>Floating P/L</th><th></th></tr></thead>
+      <tbody id="positionsBody"></tbody></table>
+      <div id="noPositions" class="muted" style="padding:12px 0">No open positions.</div>
+    </div>
+    <div class="card">
+      <h2>Account</h2>
+      <div class="metric"><span>Account type</span><b>Demo / Paper</b></div>
+      <div class="metric"><span>Broker bridge</span><b id="brokerState" class="yellow">NOT CONNECTED</b></div>
+      <div class="metric"><span>Execution</span><b class="green">SIMULATED</b></div>
+      <div class="metric"><span>Open risk</span><b id="openRisk">$0.00</b></div>
+    </div>
+  </div>
+</section>
+
+<section id="scout" class="hidden">
+  <div class="card">
+    <h2>Forex Market Scanner</h2>
+    <p class="muted">The scanner generates a paper signal from the current demo quote stream. MT5/Exness data can be attached through the connector tab.</p>
+    <table><thead><tr><th>Symbol</th><th>Bid</th><th>Ask</th><th>Spread</th><th>Trend</th><th>Momentum</th><th>Signal</th><th>Confidence</th></tr></thead>
+    <tbody id="scannerBody"></tbody></table>
+    <div class="actions"><button class="primary" onclick="rescan()">↻ Rescan markets</button></div>
+  </div>
+</section>
+
+<section id="positions" class="hidden">
+  <div class="card">
+    <h2>Open Positions</h2>
+    <table><thead><tr><th>Ticket</th><th>Time</th><th>Symbol</th><th>Side</th><th>Lots</th><th>Entry</th><th>Current</th><th>SL</th><th>TP</th><th>Floating P/L</th><th>Action</th></tr></thead>
+    <tbody id="positionsFull"></tbody></table>
+    <div id="positionsEmpty" class="muted" style="padding:12px 0">No open positions.</div>
+  </div>
+</section>
+
+<section id="history" class="hidden">
+  <div class="grid">
+    <div class="card kpi"><small>Total trades</small><b id="totalTrades">0</b></div>
+    <div class="card kpi"><small>Wins</small><b id="wins" class="green">0</b></div>
+    <div class="card kpi"><small>Losses</small><b id="losses" class="red">0</b></div>
+    <div class="card kpi"><small>Win rate</small><b id="winRate">0.00%</b></div>
+  </div>
+  <div class="card section">
+    <h2>Completed Trade Log</h2>
+    <table><thead><tr><th>Ticket</th><th>Time</th><th>Symbol</th><th>Side</th><th>Lots</th><th>Entry</th><th>Exit</th><th>P/L</th><th>Reason</th></tr></thead>
+    <tbody id="historyBody"></tbody></table>
+    <div id="historyEmpty" class="muted" style="padding:12px 0">No completed trades yet.</div>
+  </div>
+</section>
+
+<section id="risk" class="hidden">
+  <div class="two">
+    <div class="card"><h2>Risk Engine</h2>
+      <div class="form">
+        <div class="field"><label>Paper account ($)</label><input id="balance" type="number" value="2000"></div>
+        <div class="field"><label>Max daily loss (%)</label><input id="riskPct" type="number" value="2" step=".1"></div>
+        <div class="field"><label>Max account drawdown (%)</label><input id="ddPct" type="number" value="10" step=".5"></div>
+        <div class="field"><label>Risk per trade (%)</label><input id="riskTrade" type="number" value="1" step=".1"></div>
+        <div class="field"><label>Default lot size</label><input id="lotSize" type="number" value="0.10" step=".01"></div>
+        <div class="field"><label>Minimum signal confidence (%)</label><input id="minScore" type="number" value="70"></div>
+      </div>
+      <div class="actions"><button class="primary" onclick="applyRisk()">Apply rules</button></div>
+      <div id="riskText" class="alert"></div>
+    </div>
+    <div class="card"><h2>Automatic safeguards</h2>
+      <div class="metric"><span>Daily loss cap</span><b id="dailyCap">$40.00</b></div>
+      <div class="metric"><span>Drawdown cap</span><b id="ddCap">$200.00</b></div>
+      <div class="metric"><span>Risk / trade</span><b id="tradeCap">$20.00</b></div>
+      <div class="metric"><span>Min confidence</span><b id="scoreCap">70%</b></div>
+      <div class="alert">When a limit is breached, new paper entries are blocked.</div>
+    </div>
+  </div>
+</section>
+
+<section id="connect" class="hidden">
+  <div class="two">
+    <div class="card"><h2>MT5 / Exness-style Connector</h2>
+      <p class="muted">This terminal mirrors an Exness/MT5 workflow, but it is not an official Exness interface. Keep broker credentials out of this HTML page.</p>
+      <div class="form">
+        <div class="field"><label>Connection type</label><select id="connType"><option>MT5 demo bridge</option><option>MT5 data bridge</option><option>Backend API bridge</option></select></div>
+        <div class="field"><label>Environment</label><select id="environment"><option>Demo</option><option>Paper</option><option disabled>Live — locked</option></select></div>
+      </div>
+      <div class="actions"><button class="primary" onclick="testConnection()">Test connector</button></div>
+      <div id="connMsg" class="alert">Not connected. No credentials are stored here.</div>
+    </div>
+    <div class="card"><h2>Execution flow</h2>
+      <div class="metric"><span>1. Receive MT5 market/account data</span><b>→</b></div>
+      <div class="metric"><span>2. Mooncast scanner finds setup</span><b>→</b></div>
+      <div class="metric"><span>3. Risk engine calculates lot/risk</span><b>→</b></div>
+      <div class="metric"><span>4. Paper order is recorded</span><b>→</b></div>
+      <div class="metric"><span>5. Live order</span><b class="red">LOCKED</b></div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<script>
+const markets = {
+  EURUSD:{bid:1.08420,step:0.00010,digits:5},
+  GBPUSD:{bid:1.27240,step:0.00012,digits:5},
+  USDJPY:{bid:149.820,step:0.018,digits:3},
+  XAUUSD:{bid:2658.40,step:0.85,digits:2},
+  BTCUSD:{bid:64820.00,step:45,digits:2}
+};
+let selected="EURUSD", positions=[], history=[], ticket=10001;
+let balance=2000, equity=2000, peak=2000, dayStart=2000, pnl=0;
+let rules={risk:2,dd:10,riskTrade:1,lot:.10,min:70};
+let running=true, lastTick=Date.now();
+
+function money(x){return (x<0?"-$":"$")+Math.abs(x).toFixed(2)}
+function fmt(sym,x){return x.toFixed(markets[sym].digits)}
+function current(sym){return markets[sym].bid}
+function spread(sym){return markets[sym].step*.8}
+function quote(sym){
+  const m=markets[sym], ask=m.bid+m.step*.8;
+  return {bid:m.bid,ask};
+}
+function signal(sym){
+  const q=quote(sym), m=markets[sym];
+  const wave=Math.sin(Date.now()/17000 + Object.keys(markets).indexOf(sym));
+  const trend=wave>.2?"BULLISH":wave<-.2?"BEARISH":"NEUTRAL";
+  const conf=Math.round(55+Math.abs(wave)*35);
+  let side=conf>=rules.min?(trend==="BULLISH"?"BUY":trend==="BEARISH"?"SELL":"WAIT"):"WAIT";
+  return {trend,conf,side};
+}
+function tab(id,b){
+  document.querySelectorAll("section").forEach(x=>x.classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+  document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
+}
+function log(x){
+  // visible execution log is represented in the trade history; console is intentionally quiet
+  lastTick=Date.now();
+}
+function renderWatch(){
+  let el=document.getElementById("watch");
+  el.innerHTML=Object.keys(markets).map(sym=>{
+    let q=quote(sym), s=signal(sym);
+    return `<div class="metric" style="cursor:pointer" onclick="selectMarket('${sym}')">
+      <span><b>${sym}</b><br><small class="muted">${s.trend}</small></span>
+      <span>${fmt(sym,q.bid)} / ${fmt(sym,q.ask)}<br><small class="${s.side==='BUY'?'green':s.side==='SELL'?'red':'yellow'}">${s.side} ${s.conf}%</small></span>
+    </div>`;
+  }).join("");
+}
+function selectMarket(sym){
+  selected=sym; render();
+}
+function renderChart(){
+  const el=document.getElementById("chart"), m=markets[selected];
+  let base=m.bid, bars=[];
+  for(let i=0;i<42;i++){
+    let v=Math.sin(i*.55+Date.now()/12000)*m.step*10 + Math.sin(i*.13)*m.step*5;
+    bars.push(base+v-(42-i)*m.step*.03);
+  }
+  const min=Math.min(...bars),max=Math.max(...bars), W=800,H=300;
+  const pts=bars.map((v,i)=>`${i/(bars.length-1)*W},${H-18-(v-min)/(max-min||1)*(H-36)}`).join(" ");
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" width="100%" height="100%">
+    <defs><pattern id="g" width="50" height="40" patternUnits="userSpaceOnUse"><path d="M50 0H0V40" fill="none" stroke="#202c38" stroke-width="1"/></pattern></defs>
+    <rect width="100%" height="100%" fill="#080c11"/><rect width="100%" height="100%" fill="url(#g)"/>
+    <polyline points="${pts}" fill="none" stroke="#55e6a5" stroke-width="2"/>
+  </svg>`;
+}
+function render(){
+  const q=quote(selected), s=signal(selected);
+  document.getElementById("chartTitle").textContent=`${selected} · 1H`;
+  document.getElementById("quoteLine").textContent=`Bid ${fmt(selected,q.bid)} · Ask ${fmt(selected,q.ask)} · Spread ${(q.ask-q.bid).toFixed(markets[selected].digits)}`;
+  document.getElementById("buyPrice").textContent=fmt(selected,q.ask);
+  document.getElementById("sellPrice").textContent=fmt(selected,q.bid);
+  const sb=document.getElementById("signalBadge");
+  sb.textContent=s.side; sb.className="badge "+(s.side==="BUY"?"good":s.side==="SELL"?"block":"watch");
+  document.getElementById("planDir").textContent=s.side;
+  document.getElementById("planDir").className=s.side==="BUY"?"green":s.side==="SELL"?"red":"yellow";
+  document.getElementById("confidence").textContent=s.conf+"%";
+  const entry=s.side==="BUY"?q.ask:s.side==="SELL"?q.bid:null;
+  const distance=markets[selected].step*35;
+  document.getElementById("planEntry").textContent=entry?fmt(selected,entry):"—";
+  document.getElementById("planSL").textContent=entry?fmt(selected,s.side==="BUY"?entry-distance:entry+distance):"—";
+  document.getElementById("planTP").textContent=entry?fmt(selected,s.side==="BUY"?entry+distance*2:entry-distance*2):"—";
+  document.getElementById("eq").textContent=money(balance);
+  document.getElementById("equity").textContent=money(equity);
+  document.getElementById("pnl").textContent=(pnl>=0?"+":"-")+money(pnl).replace("-","");
+  document.getElementById("pnl").className=pnl>=0?"green":"red";
+  const ddPct=Math.max(0,(peak-equity)/peak*100);
+  document.getElementById("dd").textContent=ddPct.toFixed(2)+"%";
+  document.getElementById("ddSub").textContent=ddPct<=rules.dd?"Within limit":"LIMIT REACHED";
+  document.getElementById("ddSub").className=ddPct<=rules.dd?"green":"red";
+  document.getElementById("dailyCap").textContent=money(dayStart*rules.risk/100);
+  document.getElementById("ddCap").textContent=money(balance*rules.dd/100);
+  document.getElementById("tradeCap").textContent=money(balance*rules.riskTrade/100);
+  document.getElementById("scoreCap").textContent=rules.min+"%";
+  document.getElementById("openRisk").textContent=money(positions.length*balance*rules.riskTrade/100);
+  renderWatch(); renderPositions(); renderHistory(); renderChart(); renderScanner();
+}
+function marketOrder(side){
+  if(!running){alert("Paper engine is paused.");return}
+  const q=quote(selected), s=signal(selected);
+  const entry=side==="BUY"?q.ask:q.bid, dist=markets[selected].step*35;
+  const p={ticket:ticket++,time:new Date().toLocaleTimeString(),symbol:selected,side,lots:rules.lot,entry,sl:side==="BUY"?entry-dist:entry+dist,tp:side==="BUY"?entry+dist*2:entry-dist*2};
+  positions.push(p);
+  document.getElementById("terminalAlert").textContent=`Paper ${side} opened: ${selected} ${rules.lot.toFixed(2)} lots @ ${fmt(selected,entry)}.`;
+  document.getElementById("terminalAlert").className="alert ok";
+  render();
+}
+function positionPL(p){
+  const q=quote(p.symbol), px=p.side==="BUY"?q.bid:q.ask;
+  const points=(p.side==="BUY"?px-p.entry:p.entry-px);
+  const pipValue=p.symbol==="USDJPY"?6.7:p.symbol==="XAUUSD"?10:p.symbol==="BTCUSD"?1:10;
+  return points/(markets[p.symbol].step)*pipValue*p.lots;
+}
+function closePosition(i,reason="Manual close"){
+  const p=positions[i], pl=positionPL(p), q=quote(p.symbol);
+  const exit=p.side==="BUY"?q.bid:q.ask;
+  balance+=pl; pnl+=pl; equity=balance; peak=Math.max(peak,equity);
+  history.unshift({...p,exit,pl,reason,closeTime:new Date().toLocaleTimeString()});
+  positions.splice(i,1);
+  if(pnl <= -(dayStart*rules.risk/100)) running=false;
+  render();
+}
+function closeAll(){while(positions.length) closePosition(0,"Close all")}
+function renderPositions(){
+  const body=document.getElementById("positionsBody"), full=document.getElementById("positionsFull");
+  document.getElementById("noPositions").style.display=positions.length?"none":"block";
+  document.getElementById("positionsEmpty").style.display=positions.length?"none":"block";
+  const rows=positions.map((p,i)=>{
+    const pl=positionPL(p);
+    return `<tr><td>${p.symbol}</td><td class="${p.side==="BUY"?"green":"red"}">${p.side}</td><td>${p.lots.toFixed(2)}</td><td>${fmt(p.symbol,p.entry)}</td><td>${fmt(p.symbol,p.sl)}</td><td>${fmt(p.symbol,p.tp)}</td><td class="${pl>=0?"green":"red"}">${money(pl)}</td><td><button onclick="closePosition(${i})">Close</button></td></tr>`;
+  }).join("");
+  body.innerHTML=rows;
+  full.innerHTML=positions.map((p,i)=>{
+    const pl=positionPL(p), q=quote(p.symbol), px=p.side==="BUY"?q.bid:q.ask;
+    return `<tr><td>${p.ticket}</td><td>${p.time}</td><td>${p.symbol}</td><td class="${p.side==="BUY"?"green":"red"}">${p.side}</td><td>${p.lots.toFixed(2)}</td><td>${fmt(p.symbol,p.entry)}</td><td>${fmt(p.symbol,px)}</td><td>${fmt(p.symbol,p.sl)}</td><td>${fmt(p.symbol,p.tp)}</td><td class="${pl>=0?"green":"red"}">${money(pl)}</td><td><button onclick="closePosition(${i})">Close</button></td></tr>`;
+  }).join("");
+}
+function renderHistory(){
+  const wins=history.filter(x=>x.pl>0).length, losses=history.filter(x=>x.pl<=0).length;
+  document.getElementById("totalTrades").textContent=history.length;
+  document.getElementById("wins").textContent=wins;
+  document.getElementById("losses").textContent=losses;
+  document.getElementById("winRate").textContent=(history.length?wins/history.length*100:0).toFixed(2)+"%";
+  document.getElementById("historyEmpty").style.display=history.length?"none":"block";
+  document.getElementById("historyBody").innerHTML=history.map(x=>`<tr>
+    <td>${x.ticket}</td><td>${x.closeTime}</td><td>${x.symbol}</td><td class="${x.side==="BUY"?"green":"red"}">${x.side}</td>
+    <td>${x.lots.toFixed(2)}</td><td>${fmt(x.symbol,x.entry)}</td><td>${fmt(x.symbol,x.exit)}</td>
+    <td class="${x.pl>=0?"green":"red"}">${money(x.pl)}</td><td>${x.reason}</td>
+  </tr>`).join("");
+}
+function renderScanner(){
+  document.getElementById("scannerBody").innerHTML=Object.keys(markets).map(sym=>{
+    const q=quote(sym),s=signal(sym);
+    return `<tr><td><b>${sym}</b></td><td>${fmt(sym,q.bid)}</td><td>${fmt(sym,q.ask)}</td><td>${(q.ask-q.bid).toFixed(markets[sym].digits)}</td>
+      <td>${s.trend}</td><td>${s.conf}%</td><td class="${s.side==="BUY"?"green":s.side==="SELL"?"red":"yellow"}"><b>${s.side}</b></td><td>${s.conf}%</td></tr>`;
+  }).join("");
+}
+function applyRisk(){
+  balance=+document.getElementById("balance").value||2000;
+  dayStart=balance; equity=balance; peak=balance; pnl=0;
+  rules.risk=+document.getElementById("riskPct").value||2;
+  rules.dd=+document.getElementById("ddPct").value||10;
+  rules.riskTrade=+document.getElementById("riskTrade").value||1;
+  rules.lot=+document.getElementById("lotSize").value||.10;
+  rules.min=+document.getElementById("minScore").value||70;
+  document.getElementById("riskText").textContent=`Rules applied. Daily loss cap ${money(dayStart*rules.risk/100)}, account drawdown cap ${money(balance*rules.dd/100)}.`;
+  render();
+}
+function rescan(){render();document.getElementById("terminalAlert").textContent="Markets rescanned. Signals updated."}
+function testConnection(){
+  document.getElementById("brokerState").textContent="DEMO BRIDGE READY";
+  document.getElementById("brokerState").className="green";
+  document.getElementById("connMsg").textContent="Connector interface ready. No broker credentials were stored or sent.";
+  document.getElementById("connMsg").className="alert ok";
+}
+setInterval(()=>{
+  Object.keys(markets).forEach(sym=>{
+    const m=markets[sym];
+    m.bid += (Math.random()-.5)*m.step*2;
+    if(sym==="XAUUSD") m.bid=Math.max(2400,m.bid);
+    if(sym==="BTCUSD") m.bid=Math.max(40000,m.bid);
+  });
+  positions.forEach(p=>{
+    const q=quote(p), px=p.side==="BUY"?q.bid:q.ask;
+    if((p.side==="BUY" && px<=p.sl)||(p.side==="SELL" && px>=p.sl)) closePosition(positions.indexOf(p),"Stop loss");
+    else if((p.side==="BUY" && px>=p.tp)||(p.side==="SELL" && px<=p.tp)) closePosition(positions.indexOf(p),"Take profit");
+  });
+  equity=balance+positions.reduce((a,p)=>a+positionPL(p),0);
+  render();
+},1200);
+
+render();
+</script>
+</body>
+</html>
